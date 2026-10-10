@@ -324,6 +324,198 @@ def speak(
         typer.secho(result.note, fg=typer.colors.YELLOW)
 
 
+# -------------------------------------------------------------------- make
+
+VIDEO_SUFFIXES = {".mp4", ".webm", ".mov"}
+IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
+BACKGROUND_VIDEO_SUFFIXES = {".mp4", ".mov", ".webm", ".mkv", ".m4v"}
+
+
+def _parse_overrides(pairs: list[str] | None) -> dict[str, Any]:
+    """``--set colors.highlight=#FF0000`` -> nested dict (values parsed as JSON when possible)."""
+    out: dict[str, Any] = {}
+    for pair in pairs or []:
+        if "=" not in pair:
+            raise ScriptError(f"--set expects key=value, got '{pair}'.")
+        key, raw = pair.split("=", 1)
+        try:
+            value: Any = json.loads(raw)
+        except ValueError:
+            value = raw
+        node = out
+        parts = key.strip().split(".")
+        for part in parts[:-1]:
+            node = node.setdefault(part, {})
+        node[parts[-1]] = value
+    return out
+
+
+@app.command()
+@friendly_errors
+def make(
+    script: Annotated[str | None, typer.Argument(help="Script file ('-' reads stdin)")] = None,
+    project_file: Annotated[
+        Path | None, typer.Option("--project", help="A .narrareel.json project file")
+    ] = None,
+    voice: Annotated[str, typer.Option(help="<engine>:<voice>")] = DEFAULT_VOICE,
+    speed: Annotated[float | None, typer.Option(help="0.5 - 2.0 (not with --target)")] = None,
+    target: Annotated[str | None, typer.Option(help="Exact length: 60s, 6m, 1:30 ...")] = None,
+    energy: Annotated[float, typer.Option(min=0.0, max=1.0, help="0 calm .. 1 hype")] = 0.5,
+    format: Annotated[str, typer.Option(help="reels, youtube, square, portrait, audio")] = "reels",
+    style: Annotated[str, typer.Option(help="Caption preset (see `narrareel styles`)")] = "bold-pop",
+    font: Annotated[str | None, typer.Option(help="Font id (see `narrareel fonts`)")] = None,
+    set_: Annotated[
+        list[str] | None, typer.Option("--set", help="Style tweak, e.g. colors.highlight=#FF4B4B")
+    ] = None,
+    background: Annotated[
+        str, typer.Option(help="#RRGGBB colour, an image/video path, or 'transparent'")
+    ] = "#101010",
+    quality: Annotated[str, typer.Option(help="fast, balanced or high")] = "balanced",
+    output: Annotated[
+        Path | None, typer.Option("-o", "--output", help="video.mp4 (a file) or a folder")
+    ] = None,
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Download models without asking")] = False,
+    json_out: Annotated[bool, typer.Option("--json")] = False,
+):
+    """Make the finished video: narration, word-synced captions, one ffmpeg render."""
+    from .engines.registry import resolve_voice
+    from .jobs.workspace import Workspace
+    from .pipeline.make import export_name, make_video
+    from .project import (
+        BackgroundConfig,
+        CaptionsConfig,
+        DurationConfig,
+        ExportConfig,
+        ProjectConfig,
+    )
+    from .script import format_duration, parse_duration
+
+    to_file = output is not None and output.suffix.lower() in VIDEO_SUFFIXES
+    if project_file:
+        project = ProjectConfig.load(project_file)
+    else:
+        if script is None:
+            raise ScriptError("Give a script file, or --project file.narrareel.json.")
+        if speed is not None and target:
+            raise ScriptError("Use either --speed or --target, not both.")
+        if quality not in ("fast", "balanced", "high"):
+            raise ScriptError("--quality must be fast, balanced or high.")
+        suffix = Path(background).suffix.lower()
+        if background.lower() == "transparent":
+            bg = BackgroundConfig(type="transparent")
+        elif suffix in IMAGE_SUFFIXES:
+            bg = BackgroundConfig(type="image", path=background)
+        elif suffix in BACKGROUND_VIDEO_SUFFIXES:
+            bg = BackgroundConfig(type="video", path=background)
+        else:
+            bg = BackgroundConfig(type="solid", color=background)
+        container = output.suffix.lower().lstrip(".") if to_file and output else "mp4"
+        project = ProjectConfig(
+            script=read_script(script),
+            duration=DurationConfig(target_seconds=parse_duration(target) if target else None),
+            voice=VoiceSelection.parse(voice, speed=speed or 1.0, energy=energy),
+            format=format,
+            captions=CaptionsConfig(preset=style, font=font, overrides=_parse_overrides(set_)),
+            background=bg,
+            export=ExportConfig(video=container, quality=quality),  # type: ignore[arg-type]
+        )
+
+    engine, _ = resolve_voice(project.voice)
+    status = engine.status()
+    if status.needs_download:
+        _confirm_download(engine.id, status.download_size_mb, yes)
+        engine.prepare(_download_progress(not json_out))
+
+    ws = Workspace(output) if output and not to_file else Workspace.create()
+    result = make_video(project, ws, progress=_progress_printer(not json_out and sys.stderr.isatty()))
+
+    final = result.video
+    if final and output and to_file:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(final, output)
+        final = output
+    if json_out:
+        _emit_json({**result.model_dump(), "video": str(final) if final else None})
+        return
+    typer.echo(f"Done: {format_duration(result.duration)}")
+    if final:
+        typer.echo(f"  video: {final}")
+        name = export_name(project.script, project.format, project.export.video)
+        typer.echo(f"  suggested name: {name}")
+    typer.echo(f"  folder: {result.folder}")
+    for w in result.warnings:
+        typer.secho(f"  ! {w}", fg=typer.colors.YELLOW)
+    if result.note:
+        typer.secho(result.note, fg=typer.colors.YELLOW)
+
+
+@app.command()
+@friendly_errors
+def preview(
+    script: Annotated[str, typer.Argument(help="Script file ('-' reads stdin)")],
+    output: Annotated[Path, typer.Option("-o", "--output", help="PNG to write")] = Path("preview.png"),
+    format: Annotated[str, typer.Option()] = "reels",
+    style: Annotated[str, typer.Option()] = "bold-pop",
+    font: Annotated[str | None, typer.Option()] = None,
+    set_: Annotated[list[str] | None, typer.Option("--set")] = None,
+):
+    """Render one caption frame (no voice needed) to check how a style looks."""
+    from .pipeline.make import preview_frame
+    from .project import CaptionsConfig, ProjectConfig
+
+    project = ProjectConfig(
+        script=read_script(script),
+        format=format,
+        captions=CaptionsConfig(preset=style, font=font, overrides=_parse_overrides(set_)),
+    )
+    output.write_bytes(preview_frame(project))
+    typer.echo(f"Wrote {output}")
+
+
+@app.command()
+@friendly_errors
+def fonts(json_out: Annotated[bool, typer.Option("--json")] = False):
+    """List caption fonts (use the id with --font)."""
+    from .captions.fonts import list_fonts
+
+    found = list_fonts()
+    if json_out:
+        _emit_json([f.public() for f in found])
+        return
+    typer.echo(f"{'ID':30} {'FAMILY':24} {'LICENSE':10} TAGS")
+    for f in found:
+        typer.echo(f"{f.id:30} {f.display_name[:24]:24} {f.license:10} {', '.join(f.tags)}")
+
+
+@app.command()
+@friendly_errors
+def styles(json_out: Annotated[bool, typer.Option("--json")] = False):
+    """List caption style presets (use the id with --style)."""
+    from .captions.styles import list_styles
+
+    found = list_styles()
+    if json_out:
+        _emit_json([s.model_dump(by_alias=True) for s in found])
+        return
+    for s in found:
+        typer.echo(f"{s.id:18} {s.name:20} font {s.font.id}, {s.layout.words_per_chunk} words/caption")
+
+
+@app.command()
+@friendly_errors
+def formats(json_out: Annotated[bool, typer.Option("--json")] = False):
+    """List video formats (use the id with --format)."""
+    from .captions.formats import list_formats
+
+    found = list_formats()
+    if json_out:
+        _emit_json([f.model_dump() for f in found])
+        return
+    for f in found:
+        size = f"{f.width}x{f.height}" if f.is_video else "audio only"
+        typer.echo(f"{f.id:10} {f.name:28} {size}")
+
+
 # ------------------------------------------------------------------- clean
 
 

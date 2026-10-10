@@ -12,6 +12,7 @@ PSF, MPL-2.0, HPND/MIT-CMU or LGPL.
 |---|---|---|---|
 | edge-tts | 7.2.x | LGPL-3.0 | Online Microsoft Edge voices (unmodified library, installed from PyPI) |
 | numpy | 2.x | BSD-3-Clause | Audio assembly |
+| fonttools | 4.x | MIT | Reading font names and glyph coverage |
 | Pillow | 11-12 | MIT-CMU (HPND) | Font previews, text measuring |
 | pydantic | 2.x | MIT | Shared data models |
 | Typer (+ Rich, Click) | 0.2x | MIT / BSD | Command line |
