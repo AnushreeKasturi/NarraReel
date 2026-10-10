@@ -82,7 +82,7 @@ def test_project_load_errors(tmp_path):
 def test_export_name():
     assert export_name("Wake up early! Grind hard.", "reels", "mp4") == "narrareel_wake-up-early_reels.mp4"
     assert export_name("???", "youtube", "webm") == "narrareel_video_youtube.webm"
-    assert export_name("नमस्ते दुनिया", "reels", "mp4").startswith("narrareel_")
+    assert export_name("नमस्ते दुनिया", "reels", "mp4") == "narrareel_नमस्ते-दुनिया_reels.mp4"
 
 
 # ----------------------------------------------------------------- render

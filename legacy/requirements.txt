@@ -1,5 +1,0 @@
-streamlit
-moviepy
-edge-tts
-pillow
-numpy

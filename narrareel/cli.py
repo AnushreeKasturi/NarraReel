@@ -556,7 +556,7 @@ def serve(
             )
         typer.secho(f"Warning: listening on {bind}; anyone with the token can use this server.",
                     fg=typer.colors.YELLOW, err=True)  # fmt: skip
-    url = f"http://{'localhost' if _is_loopback(bind) else bind}:{number}"
+    url = f"http://{'127.0.0.1' if _is_loopback(bind) else bind}:{number}"
     if open_browser:
         threading.Timer(1.2, lambda: webbrowser.open(url + (f"/?token={token}" if token else ""))).start()
     typer.echo(f"NarraReel is running at {url}  (Ctrl+C to stop)")
