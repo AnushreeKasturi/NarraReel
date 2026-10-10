@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import re
 import shutil
 import threading
+import unicodedata
 from collections.abc import Callable
 from pathlib import Path
 from typing import Literal
@@ -59,8 +59,13 @@ class MakeResult(BaseModel):
 
 def export_name(script: str, fmt: str, ext: str) -> str:
     """``narrareel_<first-3-words>_<format>.<ext>``"""
-    words = re.findall(r"[^\W_]+", script.lower())[:3]
-    slug = "-".join(words) or "video"
+    words = []
+    for raw in script.lower().split():
+        # keep letters, digits and combining marks (Devanagari vowel signs are marks)
+        word = "".join(ch for ch in raw if ch.isalnum() or unicodedata.category(ch).startswith("M"))
+        if word:
+            words.append(word)
+    slug = "-".join(words[:3]) or "video"
     return f"narrareel_{slug}_{fmt}.{ext}"
 
 
@@ -146,6 +151,7 @@ def make_video(
             ws,
             target_seconds=d.target_seconds,
             pause_scale=d.pause_scale,
+            plan_option="speed_only" if d.option == "speed_only" else "adjust_delivery",
             loudness=project.export.loudness_lufs,
             progress=_stage_progress(progress, 0.0, 0.65),
             cancel=cancel,

@@ -8,9 +8,8 @@ Voice cloning with an energy control is on the roadmap. Everything runs on your 
 
 > **Status: rebuilding.** NarraReel is the successor of Text2Reel Generator. The new engine
 > (script analysis, duration targeting, voices, word timings, subtitles) is usable from the
-> command line today. Captions rendering, the web app and voice cloning are being added; see
-> [WHAT_TO_DO.md](WHAT_TO_DO.md) for the plan and progress. The old Streamlit prototype lives in
-> [`legacy/`](legacy/README.md).
+> command line and in the web app. See [WHAT_TO_DO.md](WHAT_TO_DO.md) for the plan and progress.
+> The old Streamlit prototype was removed; it lives on in the git history.
 
 ## Install
 

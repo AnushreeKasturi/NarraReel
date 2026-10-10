@@ -192,6 +192,7 @@ def speak(
     *,
     target_seconds: float | None = None,
     pause_scale: float | None = None,
+    plan_option: Literal["adjust_delivery", "speed_only"] = "adjust_delivery",
     timing: TimingMode = "auto",
     loudness: float | None = None,
     energy_processing: bool = True,
@@ -225,7 +226,7 @@ def speak(
     scale = pause_scale if pause_scale is not None else 1.0
     if target_seconds:
         plan = dur.plan(analysis, cps, target_seconds, basis)
-        option = next(o for o in plan.options if o.kind == "adjust_delivery")
+        option = next(o for o in plan.options if o.kind == plan_option)
         speed, scale = option.speed or speed, option.pause_scale or scale
         log.info("Target %.1fs -> speed %.3f, pause scale %.2f", target_seconds, speed, scale)
 
@@ -264,7 +265,7 @@ def speak(
             # rate and synthesize once more at the corrected speed.
             measured_cps = analysis.char_count / (speech_actual * used_voice.speed)
             replan = dur.plan(analysis, measured_cps, target_seconds, "calibrated")
-            option = next(o for o in replan.options if o.kind == "adjust_delivery")
+            option = next(o for o in replan.options if o.kind == plan_option)
             new_speed = option.speed or speed
             log.info("Estimate missed; re-planning speed %.3f -> %.3f", speed, new_speed)
             if abs(new_speed - speed) < 0.02:

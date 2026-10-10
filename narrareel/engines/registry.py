@@ -74,7 +74,12 @@ def list_voices(engine_id: str | None = None, language: str | None = None) -> li
     ids = [engine_id] if engine_id else list(ENGINES)
     voices: list[VoiceInfo] = []
     for eid in ids:
-        engine = get_engine(eid)
+        try:
+            engine = get_engine(eid)
+        except EngineError:
+            if engine_id:
+                raise
+            continue  # an engine that cannot even be imported is simply not offered
         if not engine.status().available:
             if engine_id:
                 raise EngineUnavailable(engine.status().reason or f"{eid} is not available.")
