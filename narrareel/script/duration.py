@@ -338,3 +338,41 @@ def _delivery_option(
         quality=quality,
         message=message,
     )
+
+
+# ------------------------------------------------- pause layout (pipeline)
+
+INTRA_PAUSE = 0.10  # between the parts of one long sentence that was split for synthesis
+
+
+def pause_layout(analysis: ScriptAnalysis, units, scale: float) -> tuple[float, list[float], float]:
+    """(lead, pauses after each synthesis unit except the last, tail) at a pause scale."""
+    pauses: list[float] = []
+    for a, b in zip(units, units[1:], strict=False):
+        if a.sentence_idx == b.sentence_idx:
+            pauses.append(INTRA_PAUSE)
+        else:
+            kind = PARAGRAPH_PAUSE if analysis.sentences[a.sentence_idx].ends_paragraph else SENTENCE_PAUSE
+            pauses.append(kind.at(scale))
+    return LEAD_PAUSE.at(scale), pauses, TAIL_PAUSE.at(scale)
+
+
+def layout_total(analysis: ScriptAnalysis, units, scale: float) -> float:
+    lead, pauses, tail = pause_layout(analysis, units, scale)
+    return lead + sum(pauses) + tail
+
+
+def solve_pause_scale(analysis: ScriptAnalysis, units, wanted_total: float) -> float:
+    """Scale whose pause layout adds up to ``wanted_total`` seconds (clamped to the valid range)."""
+    lo, hi = SCALE_MIN, SCALE_MAX
+    if wanted_total <= layout_total(analysis, units, lo):
+        return lo
+    if wanted_total >= layout_total(analysis, units, hi):
+        return hi
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if layout_total(analysis, units, mid) < wanted_total:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
