@@ -70,7 +70,6 @@ st.markdown("""
 
 # sidebar Header
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/3074/3074767.png", width=80)
     st.title("Text2Reel Pro 🎬")
     st.markdown("---")
     st.markdown("**Create viral short-form videos in seconds.**")

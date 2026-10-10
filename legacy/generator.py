@@ -63,7 +63,8 @@ class ReelGenerator:
         # If user passed a direct code (rare case), use it, otherwise lookup
         if voice_key not in self.voices and "-" in voice_key:
              voice = voice_key
-             
+        
+        os.makedirs(TEMP_DIR, exist_ok=True)
         output_path = os.path.join(TEMP_DIR, "voice.mp3")
         communicate = edge_tts.Communicate(text, voice, rate=rate_str)
         await communicate.save(output_path)
