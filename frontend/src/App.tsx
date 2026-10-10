@@ -13,7 +13,7 @@ import { VoiceStep } from './steps/VoiceStep'
 
 function Layout() {
   const { pathname } = useLocation()
-  const { loaded, error, load } = useCatalog()
+  const { loaded, error, load, health } = useCatalog()
   useEffect(() => {
     void load()
   }, [load])
@@ -41,6 +41,12 @@ function Layout() {
             }
           >
             {error}
+          </Banner>
+        )}
+        {health?.demo && (
+          <Banner tone="info" title="You are using the public demo">
+            Scripts are limited to about two minutes, and uploads and voice cloning are off. Install NarraReel on your
+            computer to remove the limits.
           </Banner>
         )}
         {loaded && (

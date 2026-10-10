@@ -36,6 +36,9 @@ export interface EngineInfo {
 }
 
 export type Quality = DurationOption['quality']
+export type VoiceProfile = S['VoiceProfile']
+export type QualityReport = S['QualityReport']
+export type CloneResult = S['CloneResult']
 
 export interface Voice {
   engine: string

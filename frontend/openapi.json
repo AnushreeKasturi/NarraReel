@@ -214,6 +214,305 @@
         }
       }
     },
+    "/api/voices/guided-text": {
+      "get": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Guided Text",
+        "operationId": "guided_text_api_voices_guided_text_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Guided Text Api Voices Guided Text Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/voices/clone/check": {
+      "post": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Clone Check",
+        "operationId": "clone_check_api_voices_clone_check_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_clone_check_api_voices_clone_check_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualityReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/voices/clone": {
+      "post": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Clone Voice",
+        "operationId": "clone_voice_api_voices_clone_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_clone_voice_api_voices_clone_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloneResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/voices/custom": {
+      "get": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Custom Voices",
+        "operationId": "custom_voices_api_voices_custom_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VoiceProfile"
+                  },
+                  "type": "array",
+                  "title": "Response Custom Voices Api Voices Custom Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/voices/custom/{voice_id}": {
+      "delete": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Delete Custom Voice",
+        "operationId": "delete_custom_voice_api_voices_custom__voice_id__delete",
+        "parameters": [
+          {
+            "name": "voice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Voice Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Delete Custom Voice Api Voices Custom  Voice Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/voices/custom/{voice_id}/reference.mp3": {
+      "get": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Custom Reference",
+        "operationId": "custom_reference_api_voices_custom__voice_id__reference_mp3_get",
+        "parameters": [
+          {
+            "name": "voice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Voice Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/voices/custom/{voice_id}/export": {
+      "get": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Export Custom Voice",
+        "operationId": "export_custom_voice_api_voices_custom__voice_id__export_get",
+        "parameters": [
+          {
+            "name": "voice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Voice Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/voices/custom/import": {
+      "post": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Import Custom Voice",
+        "operationId": "import_custom_voice_api_voices_custom_import_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_custom_voice_api_voices_custom_import_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceProfile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/analyze": {
       "post": {
         "tags": [
@@ -1239,6 +1538,63 @@
         "type": "object",
         "title": "BackgroundConfig"
       },
+      "Body_clone_check_api_voices_clone_check_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_clone_check_api_voices_clone_check_post"
+      },
+      "Body_clone_voice_api_voices_clone_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "consent": {
+            "type": "boolean",
+            "title": "Consent",
+            "default": false
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "default": "en"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "name"
+        ],
+        "title": "Body_clone_voice_api_voices_clone_post"
+      },
+      "Body_import_custom_voice_api_voices_custom_import_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_custom_voice_api_voices_custom_import_post"
+      },
       "Body_upload_background_api_backgrounds_post": {
         "properties": {
           "file": {
@@ -1298,6 +1654,78 @@
         },
         "type": "object",
         "title": "CaptionsConfig"
+      },
+      "Check": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "warn",
+              "fail"
+            ],
+            "title": "Status"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "status",
+          "detail"
+        ],
+        "title": "Check"
+      },
+      "CloneResult": {
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/VoiceProfile"
+          },
+          "quality": {
+            "$ref": "#/components/schemas/QualityReport"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile",
+          "quality"
+        ],
+        "title": "CloneResult"
+      },
+      "Consent": {
+        "properties": {
+          "accepted": {
+            "type": "boolean",
+            "title": "Accepted"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "default": "This is my voice, or I have explicit permission from the person whose voice this is. I won't use it to impersonate or deceive anyone."
+          },
+          "at": {
+            "type": "string",
+            "title": "At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "accepted",
+          "at"
+        ],
+        "title": "Consent"
       },
       "DurationConfig": {
         "properties": {
@@ -1637,6 +2065,11 @@
             "type": "boolean",
             "title": "Auth Required",
             "default": false
+          },
+          "demo": {
+            "type": "boolean",
+            "title": "Demo",
+            "default": false
           }
         },
         "type": "object",
@@ -1806,6 +2239,32 @@
           "script"
         ],
         "title": "ProjectConfig"
+      },
+      "QualityReport": {
+        "properties": {
+          "duration": {
+            "type": "number",
+            "title": "Duration"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/Check"
+            },
+            "type": "array",
+            "title": "Checks"
+          },
+          "usable": {
+            "type": "boolean",
+            "title": "Usable",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "duration",
+          "checks"
+        ],
+        "title": "QualityReport"
       },
       "ScriptWarning": {
         "properties": {
@@ -2016,6 +2475,65 @@
           "voice"
         ],
         "title": "VoicePreviewRequest"
+      },
+      "VoiceProfile": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "engine": {
+            "type": "string",
+            "title": "Engine",
+            "default": "chatterbox"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "default": "en"
+          },
+          "consent": {
+            "$ref": "#/components/schemas/Consent"
+          },
+          "reference": {
+            "type": "string",
+            "title": "Reference",
+            "default": "reference.wav"
+          },
+          "duration": {
+            "type": "number",
+            "title": "Duration",
+            "default": 0.0
+          },
+          "quality": {
+            "items": {
+              "$ref": "#/components/schemas/Check"
+            },
+            "type": "array",
+            "title": "Quality"
+          },
+          "seed": {
+            "type": "integer",
+            "title": "Seed",
+            "default": 1234
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "consent"
+        ],
+        "title": "VoiceProfile"
       },
       "VoiceSelection": {
         "properties": {

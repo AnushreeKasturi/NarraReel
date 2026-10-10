@@ -1,5 +1,8 @@
 import type {
   AnalyzeResponse,
+  CloneResult,
+  QualityReport,
+  VoiceProfile,
   EngineInfo,
   FontInfo,
   FormatInfo,
@@ -133,6 +136,29 @@ export const api = {
   job: (jobId: string) => getJson<JobStatus>(`/api/jobs/${jobId}`),
   validateProject: (project: unknown) =>
     postJson<Project>('/api/project/validate', { project }),
+  guidedText: () => getJson<Record<string, string>>('/api/voices/guided-text'),
+  customVoices: () => getJson<VoiceProfile[]>('/api/voices/custom'),
+  checkRecording: async (blob: Blob): Promise<QualityReport> => {
+    const form = new FormData()
+    form.append('file', blob, 'recording.webm')
+    return (await send('/api/voices/clone/check', { method: 'POST', body: form })).json()
+  },
+  cloneVoice: async (blob: Blob, name: string, consent: boolean, language: string): Promise<CloneResult> => {
+    const form = new FormData()
+    form.append('file', blob, 'recording.webm')
+    form.append('name', name)
+    form.append('consent', String(consent))
+    form.append('language', language)
+    return (await send('/api/voices/clone', { method: 'POST', body: form })).json()
+  },
+  deleteVoice: async (id: string) => {
+    await send(`/api/voices/custom/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  },
+  importVoice: async (file: File): Promise<VoiceProfile> => {
+    const form = new FormData()
+    form.append('file', file)
+    return (await send('/api/voices/custom/import', { method: 'POST', body: form })).json()
+  },
   uploadFont: async (file: File): Promise<FontInfo> => {
     const form = new FormData()
     form.append('file', file)
@@ -152,6 +178,9 @@ export const fontPreviewUrl = (id: string, text?: string) =>
 
 export const voiceSampleUrl = (engine: string, id: string) =>
   mediaUrl(`/api/voices/${encodeURIComponent(engine)}/${encodeURIComponent(id)}/sample`)
+
+export const customVoiceUrl = (id: string, what: 'reference.mp3' | 'export') =>
+  mediaUrl(`/api/voices/custom/${encodeURIComponent(id)}/${what}`)
 
 export const jobFileUrl = (jobId: string, name: string, download = false) =>
   mediaUrl(`/api/jobs/${jobId}/files/${name}${download ? '?download=true' : ''}`)

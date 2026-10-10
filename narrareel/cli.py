@@ -530,6 +530,9 @@ def serve(
     port: Annotated[int | None, typer.Option(help="Port (default 8765)")] = None,
     open_browser: Annotated[bool, typer.Option("--open", help="Open the app in your browser")] = False,
     dev: Annotated[bool, typer.Option("--dev", help="Allow the Vite dev server (CORS)")] = False,
+    demo: Annotated[
+        bool, typer.Option("--demo", help="Public demo mode: short scripts, no uploads or cloning")
+    ] = False,
 ):
     """Start the NarraReel web app and API."""
     import threading
@@ -548,7 +551,7 @@ def serve(
     bind = host or settings.host
     number = port or settings.port
     token = settings.token
-    if not _is_loopback(bind):
+    if not _is_loopback(bind) and not demo:
         if not token:
             raise NarraReelError(
                 f"Binding to {bind} exposes NarraReel to your network. Set NARRAREEL_TOKEN to a "
@@ -560,7 +563,45 @@ def serve(
     if open_browser:
         threading.Timer(1.2, lambda: webbrowser.open(url + (f"/?token={token}" if token else ""))).start()
     typer.echo(f"NarraReel is running at {url}  (Ctrl+C to stop)")
-    uvicorn.run(create_app(dev=dev, token=token), host=bind, port=number, log_level="warning")
+    uvicorn.run(create_app(dev=dev, token=token, demo=demo), host=bind, port=number, log_level="warning")
+
+
+# ------------------------------------------------------------------- clone
+
+
+@app.command()
+@friendly_errors
+def clone(
+    recording: Annotated[Path, typer.Argument(help="A recording of your voice: WAV, MP3, M4A...")],
+    name: Annotated[str, typer.Option("--name", help="What to call this voice")],
+    language: Annotated[str, typer.Option(help="Language of the recording, e.g. en or hi")] = "en",
+    i_have_consent: Annotated[
+        bool, typer.Option("--i-have-consent", help="Confirm the voice is yours or you have permission")
+    ] = False,
+    json_out: Annotated[bool, typer.Option("--json")] = False,
+):
+    """Save a recording as a cloned voice (zero-shot: no training, takes a few seconds)."""
+    from .voices import CONSENT_TEXT, create_profile
+
+    if not recording.is_file():
+        raise ScriptError(f"Recording not found: {recording}")
+    if not i_have_consent:
+        typer.echo(CONSENT_TEXT)
+        if not typer.confirm("Do you confirm this?", default=False):
+            raise ScriptError("Voice cloning needs your confirmation about whose voice this is.")
+    profile, report = create_profile(recording.read_bytes(), name, True, language)
+    if json_out:
+        _emit_json({"profile": profile.model_dump(), "quality": report.model_dump()})
+        return
+    for c in report.checks:
+        mark = {"ok": "OK  ", "warn": "WARN", "fail": "FAIL"}[c.status]
+        typer.echo(f"[{mark}] {c.label}: {c.detail}")
+    typer.echo(f"Saved voice '{profile.name}'. Use it with:  --voice chatterbox:{profile.id}")
+    from .engines.chatterbox import ChatterboxEngine
+
+    if not ChatterboxEngine().status().available:
+        typer.secho('To speak with it, install the cloning engine: pip install "narrareel[clone]"',
+                    fg=typer.colors.YELLOW)  # fmt: skip
 
 
 # ------------------------------------------------------------------- clean

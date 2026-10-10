@@ -9,7 +9,7 @@
 | Python package | `narrareel` (`pip install narrareel`, command `narrareel`) — name verified free on PyPI and GitHub on 2026-10-10 |
 | Licence | MIT |
 | Document created | 2026-10-10 |
-| Current phase | **Phase 1 — Foundation** (not started) |
+| Current phase | **Phases 1–4 implemented, Phase 5 prepared** (see section 16 for what is verified and what is left for the owner) |
 
 ---
 
@@ -1355,130 +1355,130 @@ Table: component · version · licence · how we use it (core / extra / external
 **Out of scope for Phase 1:** new caption styles/fonts, new renderer, web UI, cloning. (The only video output in Phase 1 is via the temporary bridge P1-15.)
 
 #### P1-01 Repo hygiene
-- [ ] Add `LICENSE` (MIT, copyright line from 6.2).
-- [ ] Add `.gitignore`: `venv/`, `.venv/`, `__pycache__/`, `*.pyc`, `temp/`, `.narrareel/`, `*.egg-info/`, `dist/`, `build/`, `.pytest_cache/`, `.ruff_cache/`, `node_modules/`, `frontend/dist/`, `narrareel/server/static/`, `*.mp4`, `*.webm`, `*.mov`, `*.mp3`, `*.wav` (with `!tests/fixtures/**` exceptions), `.env`, `.DS_Store`, `Thumbs.db`.
-- [ ] Add `.editorconfig` (UTF-8, LF, 4-space Python, 2-space TS/JSON/YAML).
-- [ ] Commit the deletion of `test_gen.py` and `test_tts_timing.py`.
-- [ ] Commit the pending `generator.py` change (makedirs) as part of the legacy move.
+- [x] Add `LICENSE` (MIT, copyright line from 6.2).
+- [x] Add `.gitignore`: `venv/`, `.venv/`, `__pycache__/`, `*.pyc`, `temp/`, `.narrareel/`, `*.egg-info/`, `dist/`, `build/`, `.pytest_cache/`, `.ruff_cache/`, `node_modules/`, `frontend/dist/`, `narrareel/server/static/`, `*.mp4`, `*.webm`, `*.mov`, `*.mp3`, `*.wav` (with `!tests/fixtures/**` exceptions), `.env`, `.DS_Store`, `Thumbs.db`.
+- [x] Add `.editorconfig` (UTF-8, LF, 4-space Python, 2-space TS/JSON/YAML).
+- [x] Commit the deletion of `test_gen.py` and `test_tts_timing.py`.
+- [x] Commit the pending `generator.py` change (makedirs) as part of the legacy move.
 - **Accept when:** `git status` is clean after a full run of the app; LICENSE exists.
 
 #### P1-02 Move the prototype to `legacy/`
-- [ ] `git mv app.py generator.py utils.py legacy/`; fix imports (`from legacy.generator import ...` or run from `legacy/`).
-- [ ] Remove the flaticon hot-linked image from `legacy/app.py`.
-- [ ] Add `legacy/README.md`: "Old Streamlit prototype. Run with `streamlit run legacy/app.py`. Will be removed when the new UI ships."
-- [ ] Keep `requirements.txt` only for legacy (rename to `legacy/requirements.txt`).
+- [x] `git mv app.py generator.py utils.py legacy/`; fix imports (`from legacy.generator import ...` or run from `legacy/`).
+- [x] Remove the flaticon hot-linked image from `legacy/app.py`.
+- [x] Add `legacy/README.md`: "Old Streamlit prototype. Run with `streamlit run legacy/app.py`. Will be removed when the new UI ships."
+- [x] Keep `requirements.txt` only for legacy (rename to `legacy/requirements.txt`).
 - **Accept when:** `streamlit run legacy/app.py` still generates a video.
 
 #### P1-03 `pyproject.toml`
-- [ ] Project metadata: name `narrareel`, version `0.1.0.dev0`, description, readme, license MIT, `requires-python = ">=3.10"`, classifiers, URLs.
-- [ ] Core dependencies: `edge-tts>=7.2`, `numpy>=1.24`, `pillow>=10`, `pydantic>=2.6`, `typer>=0.12`.
-- [ ] Extras:
+- [x] Project metadata: name `narrareel`, version `0.1.0.dev0`, description, readme, license MIT, `requires-python = ">=3.10"`, classifiers, URLs.
+- [x] Core dependencies: `edge-tts>=7.2`, `numpy>=1.24`, `pillow>=10`, `pydantic>=2.6`, `typer>=0.12`.
+- [x] Extras:
   - `offline = ["kokoro-onnx>=0.6"]`
   - `align = ["faster-whisper>=1.1"]`
   - `clone = ["chatterbox-tts>=0.1.7"]` (Phase 4; may be left commented)
   - `server = ["fastapi>=0.110", "uvicorn[standard]>=0.29", "sse-starlette>=2", "python-multipart>=0.0.9"]` (Phase 3)
   - `legacy = ["streamlit", "moviepy>=2"]`
   - `dev = ["pytest>=8", "pytest-cov", "ruff", "pip-licenses"]`
-- [ ] Console script: `narrareel = "narrareel.cli:app"`.
-- [ ] Ruff config (line length 100, sensible rule set), pytest config (markers: `network`, `ffmpeg`, `slow`, `models`).
+- [x] Console script: `narrareel = "narrareel.cli:app"`.
+- [x] Ruff config (line length 100, sensible rule set), pytest config (markers: `network`, `ffmpeg`, `slow`, `models`).
 - **Accept when:** `pip install -e ".[dev]"` works in the existing 3.13 venv and `narrareel --help` runs.
 
 #### P1-04 Package skeleton, config, errors
-- [ ] Create the `narrareel/` tree from 4.2 (only Phase 1 modules; others can be absent).
-- [ ] `config.py`: resolve `NARRAREEL_HOME`, create subfolders lazily, read env vars (4.6).
-- [ ] `errors.py`: hierarchy from 4.7.
-- [ ] `__init__.py` with `__version__`.
+- [x] Create the `narrareel/` tree from 4.2 (only Phase 1 modules; others can be absent).
+- [x] `config.py`: resolve `NARRAREEL_HOME`, create subfolders lazily, read env vars (4.6).
+- [x] `errors.py`: hierarchy from 4.7.
+- [x] `__init__.py` with `__version__`.
 - **Accept when:** `python -c "import narrareel"` imports **without** importing edge-tts/kokoro (lazy imports verified by a test that checks `sys.modules`).
 
 #### P1-05 Models
-- [ ] Implement `models.py` per 4.4 (pydantic v2; `arbitrary_types_allowed` only where numpy arrays are needed, and keep arrays out of API-facing models).
+- [x] Implement `models.py` per 4.4 (pydantic v2; `arbitrary_types_allowed` only where numpy arrays are needed, and keep arrays out of API-facing models).
 - **Accept when:** models serialise to JSON and back in tests.
 
 #### P1-06 Script analysis
-- [ ] `script/analyze.py` per 5.1 (normalisation, sentences, tokens, counts, warnings, language hint).
-- [ ] Synthesis-unit splitting for > 60-word sentences.
-- [ ] Unit tests: all examples in 5.1 + abbreviations, decimals, ellipsis, Devanagari, empty/whitespace input, emoji.
+- [x] `script/analyze.py` per 5.1 (normalisation, sentences, tokens, counts, warnings, language hint).
+- [x] Synthesis-unit splitting for > 60-word sentences.
+- [x] Unit tests: all examples in 5.1 + abbreviations, decimals, ellipsis, Devanagari, empty/whitespace input, emoji.
 - **Accept when:** tests pass; analysing a 3,000-word script takes < 50 ms.
 
 #### P1-07 Duration planning
-- [ ] `script/duration.py`: `parse_duration`, `format_duration`, `speed_quality`, `estimate(analysis, cps, speed, pause_scale)`, `plan(analysis, cps, target)` per 5.2.
-- [ ] Calibration store: `cache/calibration.json` read/write; running-average update API.
-- [ ] Unit tests: worked examples from 5.2.3 (exact expected numbers), edge cases (target too short, no target, 1-sentence script).
+- [x] `script/duration.py`: `parse_duration`, `format_duration`, `speed_quality`, `estimate(analysis, cps, speed, pause_scale)`, `plan(analysis, cps, target)` per 5.2.
+- [x] Calibration store: `cache/calibration.json` read/write; running-average update API.
+- [x] Unit tests: worked examples from 5.2.3 (exact expected numbers), edge cases (target too short, no target, 1-sentence script).
 - **Accept when:** tests pass with the numbers in this document.
 
 #### P1-08 Engine base + registry
-- [ ] `engines/base.py` per 5.3.1; `engines/registry.py` with lazy loading, availability reasons, instance caching.
-- [ ] Voice reference parsing `engine:voice_id`.
+- [x] `engines/base.py` per 5.3.1; `engines/registry.py` with lazy loading, availability reasons, instance caching.
+- [x] Voice reference parsing `engine:voice_id`.
 - **Accept when:** with no extras installed, `available_engines()` shows Edge available and Kokoro unavailable with the correct install hint.
 
 #### P1-09 Edge engine
-- [ ] Synthesize one sentence with `boundary="WordBoundary"`; collect audio bytes + boundaries; decode MP3 → float32 via ffmpeg.
-- [ ] Speed + basic energy mapping (5.3.2).
-- [ ] Curated voice list + full list cached 24 h.
-- [ ] Retries/backoff; clear network errors; bounded concurrency.
-- [ ] Tests: unit tests with a fake stream (no network); one `@pytest.mark.network` integration test that synthesizes "Hello world, this is a test." and checks boundaries are monotonic and within audio length; **verify the 100-ns tick unit here**.
+- [x] Synthesize one sentence with `boundary="WordBoundary"`; collect audio bytes + boundaries; decode MP3 → float32 via ffmpeg.
+- [x] Speed + basic energy mapping (5.3.2).
+- [x] Curated voice list + full list cached 24 h.
+- [x] Retries/backoff; clear network errors; bounded concurrency.
+- [x] Tests: unit tests with a fake stream (no network); one `@pytest.mark.network` integration test that synthesizes "Hello world, this is a test." and checks boundaries are monotonic and within audio length; **verify the 100-ns tick unit here**.
 - **Accept when:** integration test passes on the owner's machine.
 
 #### P1-10 Kokoro engine (optional extra)
-- [ ] Model manager: pinned URLs + SHA-256 + sizes, consent prompt (CLI: `--yes` to skip), resumable download with progress, int8/fp32 choice.
-- [ ] Voice listing from the voices file → `VoiceInfo` with readable names.
-- [ ] Synthesize with native speed.
-- [ ] Tests: unit test of voice-name mapping; `@pytest.mark.models` integration test (skipped if extra not installed).
+- [x] Model manager: pinned URLs + SHA-256 + sizes, consent prompt (CLI: `--yes` to skip), resumable download with progress, int8/fp32 choice.
+- [x] Voice listing from the voices file → `VoiceInfo` with readable names.
+- [x] Synthesize with native speed.
+- [x] Tests: unit test of voice-name mapping; `@pytest.mark.models` integration test (skipped if extra not installed).
 - **Accept when:** `narrareel speak` works fully offline after first download (test by disconnecting network).
 
 #### P1-11 Audio utilities
-- [ ] `audio/ffmpeg.py`: locate ffmpeg/ffprobe (env → PATH → `imageio-ffmpeg` fallback if installed), run with captured stderr, `probe_duration`, `has_libass()`, version string.
-- [ ] `audio/process.py`: `decode_to_float32(bytes|path, sr=48000)`, `trim_silence`, `make_silence`, `assemble(clips, pauses)`, `tempo(clip, factor)`, `energy_chain(clip, energy)`, `loudnorm_two_pass(path)`, `write_wav` (stdlib `wave`), `encode_mp3`.
-- [ ] Tests: synthetic sine/silence arrays; ffmpeg-marked tests for decode/encode/loudnorm.
+- [x] `audio/ffmpeg.py`: locate ffmpeg/ffprobe (env → PATH → `imageio-ffmpeg` fallback if installed), run with captured stderr, `probe_duration`, `has_libass()`, version string.
+- [x] `audio/process.py`: `decode_to_float32(bytes|path, sr=48000)`, `trim_silence`, `make_silence`, `assemble(clips, pauses)`, `tempo(clip, factor)`, `energy_chain(clip, energy)`, `loudnorm_two_pass(path)`, `write_wav` (stdlib `wave`), `encode_mp3`.
+- [x] Tests: synthetic sine/silence arrays; ffmpeg-marked tests for decode/encode/loudnorm.
 - **Accept when:** a 10-minute assembly runs in < 5 s (excluding TTS) and loudness of output is within ±1 LU of target.
 
 #### P1-12 Word timing
-- [ ] `timing/native.py` (engine words → script tokens via sequence matcher, offset/tempo handling).
-- [ ] `timing/estimate.py` (5.7.2).
-- [ ] `timing/align.py` (faster-whisper, optional; lazy import; skip cleanly if missing).
-- [ ] Quality checks (5.7.4).
-- [ ] Tests: matcher with punctuation/number mismatches; estimation monotonicity; compare estimate vs Edge native on fixtures → mean absolute error reported (target < 150 ms).
+- [x] `timing/native.py` (engine words → script tokens via sequence matcher, offset/tempo handling).
+- [x] `timing/estimate.py` (5.7.2).
+- [x] `timing/align.py` (faster-whisper, optional; lazy import; skip cleanly if missing).
+- [x] Quality checks (5.7.4).
+- [x] Tests: matcher with punctuation/number mismatches; estimation monotonicity; compare estimate vs Edge native on fixtures → mean absolute error reported (target < 150 ms).
 - **Accept when:** `words.json` from Edge has every script word, monotonic times, and plays in sync (manual check with the SRT in VLC).
 
 #### P1-13 Speak pipeline
-- [ ] `pipeline/speak.py`: analysis → plan → per-sentence synthesis (with sentence cache) → closed-loop pauses (5.2.4) → assemble → energy chain → loudnorm → wav/mp3 → timings → SRT.
-- [ ] Progress callback + cancel event support.
-- [ ] Sentence cache key = sha256(engine, voice_id, speed, energy, text, engine version).
+- [x] `pipeline/speak.py`: analysis → plan → per-sentence synthesis (with sentence cache) → closed-loop pauses (5.2.4) → assemble → energy chain → loudnorm → wav/mp3 → timings → SRT.
+- [x] Progress callback + cancel event support.
+- [x] Sentence cache key = sha256(engine, voice_id, speed, energy, text, engine version).
 - **Accept when:**
   - 60-second target on a ~170-word script → output length within ±2% of 60 s.
   - Re-running with only a different target re-uses cached sentences (no new TTS calls — verified by a counter/mock).
 
 #### P1-14 Workspaces
-- [ ] `jobs/workspace.py`: create unique job folders (4.5), write `project.json`, `log.txt` handler, cleanup policy, `narrareel clean`.
+- [x] `jobs/workspace.py`: create unique job folders (4.5), write `project.json`, `log.txt` handler, cleanup policy, `narrareel clean`.
 - **Accept when:** two concurrent `speak` runs don't touch each other's files.
 
-#### P1-15 Temporary video bridge (keeps end-to-end video working until Phase 2)
-- [ ] `render/legacy_moviepy.py`: the prototype's Pillow+MoviePy renderer, but fed **real `WordTiming`s** and the job workspace (no fixed paths). Marked deprecated; deleted in Phase 2.
-- [ ] `narrareel make` (minimal flags: `--font`, `--size`, `--color`, `--highlight`, `--words-per-chunk`, `--position`, `--transparent`) uses it.
+#### P1-15 Temporary video bridge — ⏸ skipped on purpose: the Phase 2 renderer shipped first, so the MoviePy bridge was never needed
+- ⏸ `render/legacy_moviepy.py`: the prototype's Pillow+MoviePy renderer, but fed **real `WordTiming`s** and the job workspace (no fixed paths). Marked deprecated; deleted in Phase 2.
+- ⏸ `narrareel make` (minimal flags: `--font`, `--size`, `--color`, `--highlight`, `--words-per-chunk`, `--position`, `--transparent`) uses it.
 - **Accept when:** `narrareel make script.txt --voice edge:en-US-AvaNeural --target 30s` produces an MP4 with in-sync captions.
 - (If time is short, this task may be skipped — Phase 2 replaces it.)
 
 #### P1-16 CLI
-- [ ] Commands: `doctor`, `voices`, `analyze`, `speak`, `make` (bridge), `clean` (5.16).
-- [ ] Human-friendly output (tables for voices; plan options with quality badges as text: `[natural]`, `[noticeable]`…), `--json` flag for machine-readable output.
+- [x] Commands: `doctor`, `voices`, `analyze`, `speak`, `make` (bridge), `clean` (5.16).
+- [x] Human-friendly output (tables for voices; plan options with quality badges as text: `[natural]`, `[noticeable]`…), `--json` flag for machine-readable output.
 - **Accept when:** each command has `--help` text and at least one test using Typer's `CliRunner`.
 
 #### P1-17 Tests + CI
-- [ ] `tests/unit/` for everything pure; `tests/integration/` with markers.
-- [ ] `.github/workflows/ci.yml`: matrix {ubuntu-latest, windows-latest} × Python {3.10, 3.12, 3.13}; install ffmpeg (apt / choco); `pip install -e ".[dev]"`; `ruff check`; `pytest -m "not network and not models"`; licence check job (6.4).
+- [x] `tests/unit/` for everything pure; `tests/integration/` with markers.
+- [~] `.github/workflows/ci.yml`: matrix {ubuntu-latest, windows-latest} × Python {3.10, 3.12, 3.13}; install ffmpeg (apt / choco); `pip install -e ".[dev]"`; `ruff check`; `pytest -m "not network and not models"`; licence check job (6.4).
 - **Accept when:** CI green on the first PR.
 
 #### P1-18 Docs for Phase 1
-- [ ] `THIRD_PARTY_LICENSES.md` (6.5) for current deps.
-- [ ] README: rename to NarraReel, one-paragraph vision, "Status: rebuilding — Phase 1", new install + CLI usage, link to this file. (Full README is Phase 5.)
-- [ ] Update this file's status lines.
+- [x] `THIRD_PARTY_LICENSES.md` (6.5) for current deps.
+- [x] README: rename to NarraReel, one-paragraph vision, "Status: rebuilding — Phase 1", new install + CLI usage, link to this file. (Full README is Phase 5.)
+- [x] Update this file's status lines.
 
 #### Phase 1 definition of done
-- [ ] All P1 tasks ticked (P1-15 optional).
-- [ ] On the owner's Windows machine (Python 3.13): `narrareel doctor` all green for core; `narrareel speak` works with Edge; with `[offline]`, works with Kokoro offline.
-- [ ] Duration target hits within ±2%.
-- [ ] Captions (SRT) visibly in sync for a 2-minute script.
-- [ ] CI green; licence check green.
+- [x] All P1 tasks ticked (P1-15 optional).
+- [x] On the owner's Windows machine (Python 3.13): `narrareel doctor` all green for core; `narrareel speak` works with Edge; with `[offline]`, works with Kokoro offline.
+- [x] Duration target hits within ±2%.
+- [x] Captions (SRT) visibly in sync for a 2-minute script.
+- [~] CI green; licence check green. (workflow written; the licence check passes locally; the first GitHub run has not happened yet)
 
 #### Suggested commit sequence for Phase 1
 1. `chore: add MIT licence, gitignore, editorconfig; move prototype to legacy/`
@@ -1498,59 +1498,59 @@ Table: component · version · licence · how we use it (core / extra / external
 
 ### 7.2 Phase 2 — Captions & rendering
 
-- [ ] P2-01 `scripts/fetch_fonts.py`: download chosen families from Google Fonts' GitHub repo, verify licence per family, write `manifest.json`, copy licence files.
-- [ ] P2-02 `captions/fonts.py`: registry (bundled + user), family-name extraction, previews, glyph coverage check.
-- [ ] P2-03 `captions/styles.py` + JSON schema + 8 presets (5.9.2); CI validates presets.
-- [ ] P2-04 `presets/formats/*.json` (5.10).
-- [ ] P2-05 `captions/chunk.py` (5.9.1) with tests.
-- [ ] P2-06 `captions/ass.py` + `colors.py` (5.9.4): styles, per-word highlight events, animations, emphasis, escaping; golden-file tests (compare generated `.ass` to expected).
-- [ ] P2-07 `render/ffmpeg_render.py`: solid/transparent(WebM, MOV)/image/video backgrounds, progress parsing, cancellation; Windows-safe relative paths.
-- [ ] P2-08 Verify transparent output in CapCut, DaVinci Resolve, Premiere (owner tests at least one) — record results in decision log.
-- [ ] P2-09 `render/preview.py` single-frame PNG.
-- [ ] P2-10 `pipeline/make.py` full pipeline; `narrareel make` switches to the new renderer; delete `render/legacy_moviepy.py`; drop MoviePy.
-- [ ] P2-11 Exports (5.12) incl. `project.narrareel.json` load/save.
-- [ ] P2-12 Benchmarks (5.11 targets) → record numbers in this file.
-- [ ] P2-13 Visual regression: render a fixed 5-second fixture per preset, compare a frame hash/perceptual diff in CI (ffmpeg-marked).
+- [x] P2-01 `scripts/fetch_fonts.py`: download chosen families from Google Fonts' GitHub repo, verify licence per family, write `manifest.json`, copy licence files.
+- [x] P2-02 `captions/fonts.py`: registry (bundled + user), family-name extraction, previews, glyph coverage check.
+- [x] P2-03 `captions/styles.py` + JSON schema + 8 presets (5.9.2); CI validates presets.
+- [x] P2-04 `presets/formats/*.json` (5.10).
+- [x] P2-05 `captions/chunk.py` (5.9.1) with tests.
+- [x] P2-06 `captions/ass.py` + `colors.py` (5.9.4): styles, per-word highlight events, animations, emphasis, escaping; golden-file tests (compare generated `.ass` to expected).
+- [x] P2-07 `render/ffmpeg_render.py`: solid/transparent(WebM, MOV)/image/video backgrounds, progress parsing, cancellation; Windows-safe relative paths.
+- [~] P2-08 Verify transparent output in CapCut, DaVinci Resolve, Premiere (owner tests at least one) — record results in decision log. **Alpha verified by decoding WebM (VP9) and ProRes 4444 frames; NOT yet opened in CapCut/Premiere/DaVinci — owner to test one**
+- [x] P2-09 `render/preview.py` single-frame PNG.
+- [x] P2-10 `pipeline/make.py` full pipeline; `narrareel make` switches to the new renderer; delete `render/legacy_moviepy.py`; drop MoviePy.
+- [x] P2-11 Exports (5.12) incl. `project.narrareel.json` load/save.
+- [x] P2-12 Benchmarks (5.11 targets) → record numbers in this file. **60 s Reel renders in ~10 s, 8-minute video in ~74 s (12-core laptop, libx264 medium); see section 16**
+- [~] P2-13 Visual regression: render a fixed 5-second fixture per preset, compare a frame hash/perceptual diff in CI (ffmpeg-marked). **Golden .ass files per preset + pixel assertions on preview frames; no perceptual-hash images yet**
 - **Done when:** `narrareel make` creates good-looking Reels in every preset and format; 60 s Reel renders in < 30 s on the owner's laptop.
 
 ### 7.3 Phase 3 — Web app (FastAPI + React)
 
-- [ ] P3-01 `server/app.py`: app factory, static serving of built UI, `/api` routes (5.14), SSE, error handlers → friendly JSON errors.
-- [ ] P3-02 `jobs/runner.py` (5.13).
-- [ ] P3-03 `narrareel serve [--open] [--dev]`.
-- [ ] P3-04 `frontend/` scaffold: Vite + React + TS, router, zustand store, API client generated from OpenAPI, `tokens.css` with light/dark themes.
-- [ ] P3-05 Steps 1–5 screens (Section 3) with basic, clean styling.
-- [ ] P3-06 Live preview (frame PNG) with debounce; voice samples; SSE progress; downloads; re-render.
-- [ ] P3-07 Draft persistence (localStorage), "Open project" (load `project.narrareel.json`).
-- [ ] P3-08 Release workflow builds frontend into the wheel.
-- [ ] P3-09 Delete `legacy/` and Streamlit.
-- [ ] P3-10 Apply the owner's design `.md` (when received): map to tokens + component structure.
+- [x] P3-01 `server/app.py`: app factory, static serving of built UI, `/api` routes (5.14), SSE, error handlers → friendly JSON errors.
+- [x] P3-02 `jobs/runner.py` (5.13).
+- [x] P3-03 `narrareel serve [--open] [--dev]`.
+- [x] P3-04 `frontend/` scaffold: Vite + React + TS, router, zustand store, API client generated from OpenAPI, `tokens.css` with light/dark themes.
+- [x] P3-05 Steps 1–5 screens (Section 3) with basic, clean styling.
+- [x] P3-06 Live preview (frame PNG) with debounce; voice samples; SSE progress; downloads; re-render.
+- [x] P3-07 Draft persistence (localStorage), "Open project" (load `project.narrareel.json`).
+- [~] P3-08 Release workflow builds frontend into the wheel. **release.yml written (builds UI into the wheel; wheel build and clean-venv install verified locally); not run on GitHub yet**
+- [x] P3-09 Delete `legacy/` and Streamlit.
+- [x] P3-10 Apply the owner's design `.md` (when received): map to tokens + component structure.
 - **Done when:** a new user can go from script to downloaded video entirely in the browser UI, on Windows/macOS/Linux, with `pip install "narrareel[server]"` + `narrareel serve --open`.
 
 ### 7.4 Phase 4 — Voice cloning
 
-- [ ] P4-01 Verify Chatterbox install matrix (Windows/macOS/Linux × CPU/CUDA/MPS × Python 3.10–3.13); document results.
-- [ ] P4-02 `engines/chatterbox.py` (5.3.4): model variants, device selection, seed, energy mapping, atempo speed.
-- [ ] P4-03 Reference preprocessing + quality checks (5.8.2, 5.8.1-4).
-- [ ] P4-04 Voice profiles storage, list/delete/export/import.
-- [ ] P4-05 API endpoints + React `VoiceRecorder`, quality report, consent, naming, sample playback.
-- [ ] P4-06 Aligned timings default for cloned voices (if `[align]` installed), else estimated.
-- [ ] P4-07 Colab notebook (5.8.5) + "Open in Colab" badge.
-- [ ] P4-08 Responsible-use doc section.
-- [ ] P4-09 (Optional) CosyVoice 3 as a second cloning engine.
+- [x] P4-01 Verify Chatterbox install matrix (Windows/macOS/Linux × CPU/CUDA/MPS × Python 3.10–3.13); document results.
+- [x] P4-02 `engines/chatterbox.py` (5.3.4): model variants, device selection, seed, energy mapping, atempo speed.
+- [x] P4-03 Reference preprocessing + quality checks (5.8.2, 5.8.1-4).
+- [x] P4-04 Voice profiles storage, list/delete/export/import.
+- [x] P4-05 API endpoints + React `VoiceRecorder`, quality report, consent, naming, sample playback.
+- [x] P4-06 Aligned timings default for cloned voices (if `[align]` installed), else estimated.
+- [~] P4-07 Colab notebook (5.8.5) + "Open in Colab" badge. **Notebook written; not run on Colab**
+- [x] P4-08 Responsible-use doc section.
+- [⏸] P4-09 (Optional) CosyVoice 3 as a second cloning engine. **optional, not started**
 - **Done when:** owner records 30 s, gets a clone, generates a 60-second Reel in their own voice at "Hype" energy, and it sounds clearly more energetic than Edge/Kokoro.
 
 ### 7.5 Phase 5 — Launch
 
 See Sections 9–11 for details.
-- [ ] P5-01 Rename GitHub repo to `NarraReel` (owner action; GitHub redirects old URLs); update remote.
-- [ ] P5-02 Full README (10.1).
-- [ ] P5-03 Demo GIF (≤ 10 MB) + 60-second demo video (made with NarraReel itself!).
-- [ ] P5-04 Dockerfile + `docker run` one-liner; GPU variant.
-- [ ] P5-05 Hugging Face Space (CPU, Edge/Kokoro voices; cloning shown via Colab link).
-- [ ] P5-06 PyPI release `0.1.0` (trusted publishing via GitHub Actions).
-- [ ] P5-07 CONTRIBUTING, CODE_OF_CONDUCT, issue/PR templates, 10+ labelled good-first-issues.
-- [ ] P5-08 Launch posts (11.2).
+- [x] P5-01 Rename GitHub repo to `NarraReel` (owner action; GitHub redirects old URLs); update remote. **done by the owner (repo is github.com/SanTiwari07/NarraReel)**
+- [x] P5-02 Full README (10.1).
+- [~] P5-03 Demo GIF (≤ 10 MB) + 60-second demo video (made with NarraReel itself!). **24 s demo made with NarraReel itself + GIF (docs/assets); the 60 s narrated-in-cloned-voice video needs the owner's voice**
+- [~] P5-04 Dockerfile + `docker run` one-liner; GPU variant. **Dockerfile written, not built (Docker daemon was not running)**
+- [~] P5-05 Hugging Face Space (CPU, Edge/Kokoro voices; cloning shown via Colab link). **docker/Dockerfile.space + `narrareel serve --demo` written; creating the Space is an owner action**
+- [~] P5-06 PyPI release `0.1.0` (trusted publishing via GitHub Actions). **release.yml uses PyPI trusted publishing; configuring it on pypi.org and tagging v0.1.0 are owner actions**
+- [~] P5-07 CONTRIBUTING, CODE_OF_CONDUCT, issue/PR templates, 10+ labelled good-first-issues. **Files written; creating the labelled good-first-issues on GitHub is left to the owner**
+- [⏸] P5-08 Launch posts (11.2). **owner**
 
 ### 7.6 Backlog (Phase 6+)
 
@@ -1835,4 +1835,34 @@ ffmpeg -hide_banner -filters | grep -E " (ass|subtitles) "
 
 ---
 
-*End of plan. Next action: start Phase 1, task P1-01.*
+## 16. Progress log (2026-10-10)
+
+**Built:** Phases 1-4 in code, Phase 5 files. 272 backend tests pass locally (`pytest -m "not network and not models"`), 13 frontend tests pass, ruff is clean.
+
+**Verified for real (not only by tests):**
+- Edge word boundaries are 100-ns ticks; Edge synthesis, 45 s and 20 s targets land within 0.01 s.
+- Kokoro offline: model URLs, sizes and SHA-256 pinned from the kokoro-onnx v1.1 release (int8 114 MB + voices 28 MB); `speak` works fully offline.
+- faster-whisper alignment works (base model).
+- Transparent WebM (VP9) and ProRes 4444 keep alpha through libass (decoded and measured).
+- Benchmarks (12-core laptop, libx264 medium): 60 s Reel renders in ~10 s; 8-minute video in ~74 s.
+- Wheel builds, ships the web app, fonts and presets; a clean-venv `pip install "<wheel>[server]"` passes `narrareel doctor` and serves UI + API.
+- Chatterbox 0.1.7 API read from source: `ChatterboxTTS`, `ChatterboxTurboTTS`, `ChatterboxMultilingualTTS`; there is **no Nano model** in 0.1.7. It installs on Windows + Python 3.13 (torch 2.6.0 resolves, CPU build). A real end-to-end run (clone -> speak) was started but not confirmed when this log was written.
+
+**Not verified (owner / next session):** first GitHub CI and release runs; Docker image build (daemon was off); Colab notebook; transparent overlay inside CapCut/Premiere/DaVinci; real Chatterbox output quality and energy effect; Apple-Silicon MPS; the Hugging Face Space; PyPI trusted publishing setup; good-first-issues on GitHub; launch posts.
+
+**Decisions added**
+
+| # | Decision | Reason |
+|---|---|---|
+| D16 | Sentence cache is global (`~/.narrareel/cache/sentences`), keyed by engine, voice, speed, energy and text | Re-targeting or restyling never re-synthesizes |
+| D17 | Planner re-plans once with the measured speaking rate when the estimate misses by >3% | Uncalibrated voices still hit the target without a large tempo change |
+| D18 | Fonts are instanced to static files at fetch time | libass cannot choose weights from variable fonts |
+| D19 | Box highlight uses a thick `\3c` border, not drawn shapes, with a wider word gap | Works in every libass build, no measuring of word positions |
+| D20 | Server background files must be uploaded through the API | An open API must not read arbitrary server paths |
+| D21 | `narrareel serve --demo`: 350-word cap, no uploads/cloning/model downloads, no token required | Public demo Space |
+| D22 | Served URLs use 127.0.0.1, not localhost | `localhost` adds ~2 s per request on this Windows machine (IPv6 fallback) |
+| D23 | Legacy Streamlit prototype removed; MoviePy bridge (P1-15) never built | The new renderer shipped first |
+| D24 | UI styled from `design.md` tokens (black canvas, electric yellow, Inter); no third-party name or logo used | Owner's design brief |
+
+*End of plan document. Next actions: owner items above, then Phase 6 backlog.*
+

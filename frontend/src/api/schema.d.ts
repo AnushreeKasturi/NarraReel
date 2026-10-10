@@ -89,6 +89,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/voices/guided-text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Guided Text */
+        get: operations["guided_text_api_voices_guided_text_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/voices/clone/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clone Check */
+        post: operations["clone_check_api_voices_clone_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/voices/clone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clone Voice */
+        post: operations["clone_voice_api_voices_clone_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/voices/custom": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Custom Voices */
+        get: operations["custom_voices_api_voices_custom_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/voices/custom/{voice_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Custom Voice */
+        delete: operations["delete_custom_voice_api_voices_custom__voice_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/voices/custom/{voice_id}/reference.mp3": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Custom Reference */
+        get: operations["custom_reference_api_voices_custom__voice_id__reference_mp3_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/voices/custom/{voice_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Custom Voice */
+        get: operations["export_custom_voice_api_voices_custom__voice_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/voices/custom/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Custom Voice */
+        post: operations["import_custom_voice_api_voices_custom_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/analyze": {
         parameters: {
             query?: never;
@@ -458,6 +594,33 @@ export interface components {
              */
             darken: number;
         };
+        /** Body_clone_check_api_voices_clone_check_post */
+        Body_clone_check_api_voices_clone_check_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_clone_voice_api_voices_clone_post */
+        Body_clone_voice_api_voices_clone_post: {
+            /** File */
+            file: string;
+            /** Name */
+            name: string;
+            /**
+             * Consent
+             * @default false
+             */
+            consent: boolean;
+            /**
+             * Language
+             * @default en
+             */
+            language: string;
+        };
+        /** Body_import_custom_voice_api_voices_custom_import_post */
+        Body_import_custom_voice_api_voices_custom_import_post: {
+            /** File */
+            file: string;
+        };
         /** Body_upload_background_api_backgrounds_post */
         Body_upload_background_api_backgrounds_post: {
             /** File */
@@ -486,6 +649,37 @@ export interface components {
              * @default false
              */
             keep_emoji: boolean;
+        };
+        /** Check */
+        Check: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "warn" | "fail";
+            /** Detail */
+            detail: string;
+        };
+        /** CloneResult */
+        CloneResult: {
+            profile: components["schemas"]["VoiceProfile"];
+            quality: components["schemas"]["QualityReport"];
+        };
+        /** Consent */
+        Consent: {
+            /** Accepted */
+            accepted: boolean;
+            /**
+             * Text
+             * @default This is my voice, or I have explicit permission from the person whose voice this is. I won't use it to impersonate or deceive anyone.
+             */
+            text: string;
+            /** At */
+            at: string;
         };
         /** DurationConfig */
         DurationConfig: {
@@ -600,6 +794,11 @@ export interface components {
              * @default false
              */
             auth_required: boolean;
+            /**
+             * Demo
+             * @default false
+             */
+            demo: boolean;
         };
         /** JobCreated */
         JobCreated: {
@@ -661,6 +860,18 @@ export interface components {
             captions?: components["schemas"]["CaptionsConfig"];
             background?: components["schemas"]["BackgroundConfig"];
             export?: components["schemas"]["ExportConfig"];
+        };
+        /** QualityReport */
+        QualityReport: {
+            /** Duration */
+            duration: number;
+            /** Checks */
+            checks: components["schemas"]["Check"][];
+            /**
+             * Usable
+             * @default true
+             */
+            usable: boolean;
         };
         /** ScriptWarning */
         ScriptWarning: {
@@ -741,6 +952,43 @@ export interface components {
             /** Text */
             text: string;
             voice: components["schemas"]["VoiceSelection"];
+        };
+        /** VoiceProfile */
+        VoiceProfile: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Created At */
+            created_at: string;
+            /**
+             * Engine
+             * @default chatterbox
+             */
+            engine: string;
+            /**
+             * Language
+             * @default en
+             */
+            language: string;
+            consent: components["schemas"]["Consent"];
+            /**
+             * Reference
+             * @default reference.wav
+             */
+            reference: string;
+            /**
+             * Duration
+             * @default 0
+             */
+            duration: number;
+            /** Quality */
+            quality?: components["schemas"]["Check"][];
+            /**
+             * Seed
+             * @default 1234
+             */
+            seed: number;
         };
         /** VoiceSelection */
         VoiceSelection: {
@@ -894,6 +1142,242 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    guided_text_api_voices_guided_text_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
+    clone_check_api_voices_clone_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_clone_check_api_voices_clone_check_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QualityReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clone_voice_api_voices_clone_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_clone_voice_api_voices_clone_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CloneResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    custom_voices_api_voices_custom_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceProfile"][];
+                };
+            };
+        };
+    };
+    delete_custom_voice_api_voices_custom__voice_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                voice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    custom_reference_api_voices_custom__voice_id__reference_mp3_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                voice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_custom_voice_api_voices_custom__voice_id__export_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                voice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_custom_voice_api_voices_custom_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_custom_voice_api_voices_custom_import_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceProfile"];
                 };
             };
             /** @description Validation Error */

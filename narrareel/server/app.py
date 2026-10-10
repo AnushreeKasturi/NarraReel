@@ -17,7 +17,7 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, File, HTTPException, Query, Request, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -25,6 +25,7 @@ from sse_starlette.sse import EventSourceResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .. import __version__, config
+from .. import voices as voices_mod
 from ..audio import ffmpeg as ff
 from ..captions import fonts as fonts_mod
 from ..captions.formats import FormatError, list_formats
@@ -55,6 +56,7 @@ from . import schemas as S
 
 log = logging.getLogger("narrareel.server")
 
+DEMO_MAX_WORDS = 350
 MAX_FONT_BYTES = 10 * 1024 * 1024
 MAX_BACKGROUND_BYTES = 150 * 1024 * 1024
 DOWNLOADABLE = {
@@ -68,7 +70,9 @@ SAMPLE_TEXT = {
 
 
 def _status_for(exc: NarraReelError) -> int:
-    if isinstance(exc, ScriptError | StyleError | FormatError | fonts_mod.FontError):
+    if isinstance(
+        exc, ScriptError | StyleError | FormatError | fonts_mod.FontError | voices_mod.VoiceProfileError
+    ):
         return 422
     if isinstance(exc, EngineUnavailable | DependencyMissing):
         return 409
@@ -95,6 +99,7 @@ def create_app(
     dev: bool = False,
     token: str | None = None,
     static_dir: Path | None = None,
+    demo: bool = False,
 ) -> FastAPI:
     runner = runner or JobRunner()
 
@@ -122,6 +127,23 @@ def create_app(
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+    if demo:
+
+        @app.middleware("http")
+        async def demo_limits(request: Request, call_next):
+            path = request.url.path
+            blocked = (
+                request.method != "GET"
+                and path.startswith(("/api/fonts", "/api/backgrounds", "/api/voices/clone",
+                                    "/api/voices/custom", "/api/engines/", "/api/presets/styles"))
+            )  # fmt: skip
+            if blocked:
+                return _error(
+                    "This is the public demo, so uploads, cloning and downloads of models are turned off. "
+                    "Install NarraReel on your computer to use them.", 403, "DemoLimit"
+                )
+            return await call_next(request)
 
     if token:
 
@@ -158,6 +180,7 @@ def create_app(
 
         have = ff.available()
         return S.HealthResponse(
+            demo=demo,
             version=__version__,
             ffmpeg=have,
             ffmpeg_version=ff.version() if have else None,
@@ -218,6 +241,66 @@ def create_app(
             encode_mp3(wav, mp3, "128k")
             wav.unlink(missing_ok=True)
         return FileResponse(mp3, media_type="audio/mpeg")
+
+    # ------------------------------------------------------- voice cloning
+
+    async def _read_upload(file: UploadFile, limit: int = voices_mod.MAX_UPLOAD_BYTES) -> bytes:
+        data = await file.read(limit + 1)
+        if len(data) > limit:
+            raise ScriptError("That recording is larger than 25 MB.")
+        return data
+
+    @app.get("/api/voices/guided-text", tags=["voices"])
+    def guided_text() -> dict[str, str]:
+        return {**voices_mod.GUIDED_TEXTS, "consent": voices_mod.CONSENT_TEXT}
+
+    @app.post("/api/voices/clone/check", response_model=voices_mod.QualityReport, tags=["voices"])
+    async def clone_check(file: UploadFile = File(...)) -> voices_mod.QualityReport:
+        data = await _read_upload(file)
+        return await asyncio.to_thread(voices_mod.check_recording, data)
+
+    @app.post("/api/voices/clone", response_model=S.CloneResult, tags=["voices"])
+    async def clone_voice(
+        file: UploadFile = File(...),
+        name: str = Form(...),
+        consent: bool = Form(False),
+        language: str = Form("en"),
+    ) -> S.CloneResult:
+        data = await _read_upload(file)
+        profile, report = await asyncio.to_thread(
+            voices_mod.create_profile, data, name, consent, language
+        )
+        return S.CloneResult(profile=profile, quality=report)
+
+    @app.get("/api/voices/custom", tags=["voices"])
+    def custom_voices() -> list[voices_mod.VoiceProfile]:
+        return voices_mod.list_profiles()
+
+    @app.delete("/api/voices/custom/{voice_id}", tags=["voices"])
+    def delete_custom_voice(voice_id: str) -> dict[str, bool]:
+        voices_mod.delete_profile(voice_id)
+        return {"deleted": True}
+
+    @app.get("/api/voices/custom/{voice_id}/reference.mp3", tags=["voices"])
+    def custom_reference(voice_id: str) -> FileResponse:
+        voices_mod.get_profile(voice_id)
+        path = voices_mod.profile_dir(voice_id) / "reference.mp3"
+        if not path.is_file():
+            raise HTTPException(404, "No recording is stored for that voice.")
+        return FileResponse(path, media_type="audio/mpeg")
+
+    @app.get("/api/voices/custom/{voice_id}/export", tags=["voices"])
+    def export_custom_voice(voice_id: str) -> Response:
+        data = voices_mod.export_profile(voice_id)
+        return Response(
+            data, media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="{voice_id}.narrareel-voice.zip"'},
+        )  # fmt: skip
+
+    @app.post("/api/voices/custom/import", response_model=voices_mod.VoiceProfile, tags=["voices"])
+    async def import_custom_voice(file: UploadFile = File(...)) -> voices_mod.VoiceProfile:
+        data = await _read_upload(file, 60 * 1024 * 1024)
+        return await asyncio.to_thread(voices_mod.import_profile, data)
 
     # ---------------------------------------------------- script analysis
 
@@ -358,6 +441,13 @@ def create_app(
         with Image.open(path) as im:
             im.verify()
 
+    def _check_demo_length(script: str) -> None:
+        if demo and analyze_script(script).word_count > DEMO_MAX_WORDS:
+            raise ScriptError(
+                f"The public demo is limited to {DEMO_MAX_WORDS} words (about two minutes). "
+                "Install NarraReel on your computer for longer scripts."
+            )
+
     def _check_background(project: ProjectConfig) -> None:
         """Only files uploaded through the API may be used as backgrounds."""
         bg = project.background
@@ -386,6 +476,7 @@ def create_app(
 
     @app.post("/api/jobs", response_model=S.JobCreated, tags=["jobs"])
     def create_job(req: S.JobRequest) -> S.JobCreated:
+        _check_demo_length(req.project.script)
         _check_background(req.project)
         resolve_style(req.project.captions.preset, req.project.captions.overrides,
                       req.project.captions.font)  # fail fast on bad style/font ids
@@ -438,6 +529,7 @@ def create_app(
 
     @app.post("/api/jobs/{job_id}/rerender", response_model=S.JobCreated, tags=["jobs"])
     def rerender(job_id: str, req: S.JobRequest) -> S.JobCreated:
+        _check_demo_length(req.project.script)
         _check_background(req.project)
         return S.JobCreated(job_id=runner.submit_video(req.project, reuse_from=job_id).id)
 
