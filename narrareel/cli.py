@@ -516,6 +516,53 @@ def formats(json_out: Annotated[bool, typer.Option("--json")] = False):
         typer.echo(f"{f.id:10} {f.name:28} {size}")
 
 
+# ------------------------------------------------------------------- serve
+
+
+def _is_loopback(host: str) -> bool:
+    return host in ("127.0.0.1", "localhost", "::1")
+
+
+@app.command()
+@friendly_errors
+def serve(
+    host: Annotated[str | None, typer.Option(help="Bind address (default 127.0.0.1)")] = None,
+    port: Annotated[int | None, typer.Option(help="Port (default 8765)")] = None,
+    open_browser: Annotated[bool, typer.Option("--open", help="Open the app in your browser")] = False,
+    dev: Annotated[bool, typer.Option("--dev", help="Allow the Vite dev server (CORS)")] = False,
+):
+    """Start the NarraReel web app and API."""
+    import threading
+    import webbrowser
+
+    from .errors import DependencyMissing
+
+    try:
+        import uvicorn
+
+        from .server import create_app
+    except ImportError as exc:
+        raise DependencyMissing("The web server", 'Install with: pip install "narrareel[server]"') from exc
+
+    settings = config.load_settings()
+    bind = host or settings.host
+    number = port or settings.port
+    token = settings.token
+    if not _is_loopback(bind):
+        if not token:
+            raise NarraReelError(
+                f"Binding to {bind} exposes NarraReel to your network. Set NARRAREEL_TOKEN to a "
+                "secret first (the app then asks for it), or use --host 127.0.0.1."
+            )
+        typer.secho(f"Warning: listening on {bind}; anyone with the token can use this server.",
+                    fg=typer.colors.YELLOW, err=True)  # fmt: skip
+    url = f"http://{'localhost' if _is_loopback(bind) else bind}:{number}"
+    if open_browser:
+        threading.Timer(1.2, lambda: webbrowser.open(url + (f"/?token={token}" if token else ""))).start()
+    typer.echo(f"NarraReel is running at {url}  (Ctrl+C to stop)")
+    uvicorn.run(create_app(dev=dev, token=token), host=bind, port=number, log_level="warning")
+
+
 # ------------------------------------------------------------------- clean
 
 

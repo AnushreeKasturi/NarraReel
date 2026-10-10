@@ -24,6 +24,7 @@ class Workspace:
     def __init__(self, path: Path):
         self.path = Path(path)
         self.path.mkdir(parents=True, exist_ok=True)
+        self._log_depth = 0
 
     @property
     def id(self) -> str:
@@ -59,7 +60,15 @@ class Workspace:
 
     @contextlib.contextmanager
     def logging(self, level: int = logging.INFO) -> Iterator[None]:
-        """Mirror ``narrareel.*`` log records into this job's ``log.txt``."""
+        """Mirror ``narrareel.*`` log records into this job's ``log.txt`` (re-entrant)."""
+        if self._log_depth:
+            self._log_depth += 1
+            try:
+                yield
+            finally:
+                self._log_depth -= 1
+            return
+        self._log_depth = 1
         handler = logging.FileHandler(self.file("log.txt"), encoding="utf-8")
         handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
         handler.setLevel(level)
@@ -71,6 +80,7 @@ class Workspace:
         try:
             yield
         finally:
+            self._log_depth = 0
             root.removeHandler(handler)
             root.setLevel(old_level)
             handler.close()
