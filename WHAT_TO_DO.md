@@ -1549,7 +1549,7 @@ See Sections 9–11 for details.
 - [~] P5-04 Dockerfile + `docker run` one-liner; GPU variant. **Dockerfile written, not built (Docker daemon was not running)**
 - [~] P5-05 Hugging Face Space (CPU, Edge/Kokoro voices; cloning shown via Colab link). **docker/Dockerfile.space + `narrareel serve --demo` written; creating the Space is an owner action**
 - [~] P5-06 PyPI release `0.1.0` (trusted publishing via GitHub Actions). **release.yml uses PyPI trusted publishing; configuring it on pypi.org and tagging v0.1.0 are owner actions**
-- [~] P5-07 CONTRIBUTING, CODE_OF_CONDUCT, issue/PR templates, 10+ labelled good-first-issues. **Files written; creating the labelled good-first-issues on GitHub is left to the owner** **Ten drafts with labels and `gh` command are in `docs/good-first-issues.md`.**
+- [x] P5-07 CONTRIBUTING, CODE_OF_CONDUCT, issue/PR templates, 10+ labelled good-first-issues. **Files written; creating the labelled good-first-issues on GitHub is left to the owner** **The 10 issues are posted as #1-#10 (drafts in `docs/good-first-issues.md`).**
 - [⏸] P5-08 Launch posts (11.2). **owner**
 
 ### 7.6 Backlog (Phase 6+)
