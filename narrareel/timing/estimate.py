@@ -75,3 +75,30 @@ def estimate_timings(
             )
         )
     return out
+
+
+def estimate_script_timings(
+    analysis,
+    cps: float | None = None,
+    speed: float = 1.0,
+    pause_scale: float = 1.0,
+) -> tuple[list[WordTiming], float]:
+    """Timings for a whole script without any audio (used for caption previews).
+
+    Returns the words and the estimated total length in seconds.
+    """
+    from ..script import duration as dur
+    from ..script.analyze import synthesis_units
+
+    cps = cps or dur.default_cps(analysis.language_hint)
+    units = synthesis_units(analysis)
+    lead, pauses, tail = dur.pause_layout(analysis, units, pause_scale)
+    cursor = lead
+    words: list[WordTiming] = []
+    for i, unit in enumerate(units):
+        tokens = analysis.tokens[unit.token_start : unit.token_end]
+        chars = sum(1 for t in tokens for ch in t.text if ch.isalnum())
+        seconds = max(0.15, chars / (cps * speed))
+        words.extend(estimate_timings(tokens, unit.token_start, (cursor, cursor + seconds)))
+        cursor += seconds + (pauses[i] if i < len(pauses) else 0.0)
+    return words, cursor + tail
