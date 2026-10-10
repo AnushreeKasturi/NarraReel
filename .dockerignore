@@ -13,4 +13,3 @@ docs
 *.mp3
 .pytest_cache
 .ruff_cache
-.claude

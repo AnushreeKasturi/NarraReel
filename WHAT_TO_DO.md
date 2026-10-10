@@ -19,7 +19,7 @@ This file is the single source of truth for **what NarraReel is, why it exists, 
 
 - the owner (SanTiwari07) can check every decision in one place,
 - any contributor can pick up a task without asking questions,
-- any AI coding session (Claude Code or similar) can read this file first and have full context.
+- any AI coding session (or similar tool) can read this file first and have full context.
 
 **Rules for keeping it useful**
 
