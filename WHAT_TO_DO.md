@@ -1510,7 +1510,7 @@ Table: component · version · licence · how we use it (core / extra / external
 - [x] P2-10 `pipeline/make.py` full pipeline; `narrareel make` switches to the new renderer; delete `render/legacy_moviepy.py`; drop MoviePy.
 - [x] P2-11 Exports (5.12) incl. `project.narrareel.json` load/save.
 - [x] P2-12 Benchmarks (5.11 targets) → record numbers in this file. **60 s Reel renders in ~10 s, 8-minute video in ~74 s (12-core laptop, libx264 medium); see section 16**
-- [~] P2-13 Visual regression: render a fixed 5-second fixture per preset, compare a frame hash/perceptual diff in CI (ffmpeg-marked). **Golden .ass files per preset + pixel assertions on preview frames; no perceptual-hash images yet**
+- [x] P2-13 Visual regression: render a fixed preview frame per preset and compare a 4096-bit perceptual hash (`tests/unit/test_visual_regression.py`, hashes in `tests/golden/preview_hashes.json`). **Tolerance 15 bits; a 2 % font-size change moves ~30 bits. Hashes were generated on Linux; the first Windows CI run confirms they transfer.**
 - **Done when:** `narrareel make` creates good-looking Reels in every preset and format; 60 s Reel renders in < 30 s on the owner's laptop.
 
 ### 7.3 Phase 3 — Web app (FastAPI + React)
@@ -1549,7 +1549,7 @@ See Sections 9–11 for details.
 - [~] P5-04 Dockerfile + `docker run` one-liner; GPU variant. **Dockerfile written, not built (Docker daemon was not running)**
 - [~] P5-05 Hugging Face Space (CPU, Edge/Kokoro voices; cloning shown via Colab link). **docker/Dockerfile.space + `narrareel serve --demo` written; creating the Space is an owner action**
 - [~] P5-06 PyPI release `0.1.0` (trusted publishing via GitHub Actions). **release.yml uses PyPI trusted publishing; configuring it on pypi.org and tagging v0.1.0 are owner actions**
-- [~] P5-07 CONTRIBUTING, CODE_OF_CONDUCT, issue/PR templates, 10+ labelled good-first-issues. **Files written; creating the labelled good-first-issues on GitHub is left to the owner**
+- [x] P5-07 CONTRIBUTING, CODE_OF_CONDUCT, issue/PR templates, 10+ labelled good-first-issues. **Files written. The 10 issues are posted as #1-#10 (drafts in `docs/good-first-issues.md`).**
 - [⏸] P5-08 Launch posts (11.2). **owner**
 
 ### 7.6 Backlog (Phase 6+)
@@ -1863,6 +1863,8 @@ ffmpeg -hide_banner -filters | grep -E " (ass|subtitles) "
 | D22 | Served URLs use 127.0.0.1, not localhost | `localhost` adds ~2 s per request on this Windows machine (IPv6 fallback) |
 | D23 | Legacy Streamlit prototype removed; MoviePy bridge (P1-15) never built | The new renderer shipped first |
 | D24 | UI styled from `design.md` tokens (black canvas, electric yellow, Inter); no third-party name or logo used | Owner's design brief |
+| D25 | Caption text is measured with Pillow's BASIC layout engine, never Raqm | Raqm is optional in Pillow builds and its kerning moves widths 1-4 %, which changed line breaks (and golden files) between machines |
+
+**Session update (Linux sandbox, same day):** ran the CI commands locally on Linux / Python 3.13: `ruff check` clean, 275 backend tests pass, `check_licenses.py` passes, frontend typecheck + 13 tests + build pass. This found one real cross-platform bug (D25: the `bold-pop` golden file failed on Linux because of the Raqm layout engine) which would have failed the first Linux CI run; fixed. Added the perceptual-hash visual regression (P2-13). The Docker image could not be built in this sandbox (the container cannot reach `deb.debian.org`); Colab notebook commands were checked against the real CLI (flags and voice-id slug match) but not run on Colab.
 
 *End of plan document. Next actions: owner items above, then Phase 6 backlog.*
-

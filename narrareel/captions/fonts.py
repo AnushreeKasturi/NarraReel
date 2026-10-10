@@ -198,7 +198,9 @@ def _ass_scale(path: str) -> float:
 def measure_font(font: FontInfo, ass_size: float) -> ImageFont.FreeTypeFont:
     """A Pillow font whose pixel metrics match libass at ASS font size ``ass_size``."""
     px = max(1.0, ass_size * _ass_scale(str(font.path)))
-    return ImageFont.truetype(str(font.path), size=round(px * 4) / 4)
+    # BASIC, not RAQM: Raqm is only present in some Pillow builds and its GPOS kerning shifts widths by
+    # 1-4 %, so line breaks (and the golden .ass files) would differ between machines.
+    return ImageFont.truetype(str(font.path), size=round(px * 4) / 4, layout_engine=ImageFont.Layout.BASIC)
 
 
 def text_width(pil_font: ImageFont.FreeTypeFont, text: str, letter_spacing: float = 0.0) -> float:
