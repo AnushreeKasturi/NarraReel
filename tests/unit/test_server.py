@@ -25,7 +25,7 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("NARRAREEL_HOME", str(tmp_path / "home"))
     registry.register_engine("fake", "tests.unit.fake_engine:FakeEngine")
     runner = JobRunner(tmp_path / "jobs")
-    with TestClient(create_app(runner=runner)) as c:
+    with TestClient(create_app(runner=runner, static_dir=tmp_path / "no-ui")) as c:
         c.runner = runner
         yield c
     registry.reset_instances()
