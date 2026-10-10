@@ -1,0 +1,16 @@
+.git
+venv
+.venv
+**/__pycache__
+**/node_modules
+frontend/dist
+narrareel/server/static/*
+temp
+tests
+docs
+*.mp4
+*.wav
+*.mp3
+.pytest_cache
+.ruff_cache
+.claude

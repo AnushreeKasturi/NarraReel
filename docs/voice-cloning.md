@@ -1,0 +1,80 @@
+# Cloning your voice
+
+NarraReel can narrate in **your own voice** with an energy control (calm to hype), using
+[Chatterbox](https://github.com/resemble-ai/chatterbox) (MIT code, MIT weights). It is *zero-shot*: there is
+no training. A voice is a cleaned 10-30 second recording plus a few settings, so it takes seconds to create
+and is a tiny file you can export and share between your own computers.
+
+## Quick start
+
+```bash
+pip install "narrareel[clone]"      # the cloning engine (large: PyTorch + the model)
+narrareel serve --open              # Voice step -> "My voice" tab: record, check, save
+```
+
+Or from the terminal:
+
+```bash
+narrareel clone my-recording.wav --name "My voice" --i-have-consent
+narrareel make script.txt --voice chatterbox:my-voice --energy 0.8 --target 60s -o reel.mp4
+```
+
+You can record and save voices **without** the cloning engine installed. Only speaking with them needs it.
+
+## How to record a good reference
+
+- Read the guided paragraph on screen **the way you want your videos to sound**. The clone copies how you speak
+  (pace, energy, warmth), not just how you sound. For an energetic channel, record energetically.
+- 15-30 seconds in a quiet room. Speak continuously and keep the microphone at a steady distance.
+- NarraReel checks the recording instantly: length, clipping, loudness, background noise and how much of it is
+  speech. Items marked *Fix* must be fixed; *Check* items are warnings.
+- Longer recordings are trimmed to the cleanest 30 seconds. Browser recordings are captured raw (no noise
+  suppression or auto-gain), because the clone would copy those effects.
+
+## Models and hardware
+
+| Your computer | What happens |
+|---|---|
+| NVIDIA GPU (CUDA) | Original Chatterbox (500M): best quality, fast. |
+| Apple Silicon | Original model on MPS (not verified by the maintainers; please report results). |
+| CPU only | Chatterbox Turbo (350M): works, slower. Or use the free Colab notebook. |
+| Non-English reference | Multilingual model, chosen automatically from the voice's language. |
+
+Override with `NARRAREEL_CLONE_MODEL=original|turbo|multilingual` and `NARRAREEL_DEVICE=cpu|cuda|mps`.
+
+The first run downloads about 2 GB of weights from Hugging Face. Speed is applied by time-stretching
+(the model has no speed control). Energy maps to the model's `exaggeration` and `cfg_weight` on the original and
+multilingual models; the Turbo model has no such control, so there energy only changes the audio processing.
+
+Install notes (checked on 2026-10-10): `chatterbox-tts` 0.1.7 resolves on Python 3.13 and pins `torch==2.6.0`.
+Its pins can clash with other packages, so install the `clone` extra in its own virtual environment if you hit
+conflicts. On Windows the PyPI `torch` wheel is CPU-only; for a GPU follow the PyTorch install selector first.
+
+## Free GPU: Google Colab
+
+Open [`notebooks/NarraReel_Colab.ipynb`](../notebooks/NarraReel_Colab.ipynb) in Colab, choose a GPU runtime,
+upload your recording and script, and download the finished video. The notebook uses plain cells, not a
+tunnelled web UI.
+
+## Responsible use
+
+- **Only clone a voice you own or have explicit permission to use.** NarraReel asks you to confirm this every
+  time, and stores the confirmation (text and time) in the voice's `profile.json`.
+- Imported voices must carry that recorded confirmation.
+- Chatterbox embeds Resemble AI's **Perth watermark**, an inaudible marker that lets tools detect AI-generated
+  speech. NarraReel never disables it.
+- There is deliberately no way to clone from a link to someone else's video.
+- Many platforms ask you to label AI-generated or synthetic content. Rules change, so check the current policy
+  of each platform you publish on before you post.
+
+## Verifying the real model on your machine
+
+The unit tests drive the engine with a stand-in model, so the real weights are not part of CI. To check yours:
+
+```bash
+pip install "narrareel[clone]"
+narrareel clone my-recording.wav --name "My voice" --i-have-consent
+narrareel speak script.txt --voice chatterbox:my-voice --energy 0.9 -o out/
+```
+
+Listen to `out/voice.mp3`, then repeat with `--energy 0.2` and compare.

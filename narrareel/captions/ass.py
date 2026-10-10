@@ -127,6 +127,8 @@ def _word_tags(style: CaptionStyle, st: _WordState, intro: str | None, dur_ms: i
 def _event_text(
     style: CaptionStyle, chunk: CaptionChunk, active: int | None, intro: str | None
 ) -> str:
+    # a box highlight eats into the gap between words, so give those styles a wider one
+    separator = "  " if style.highlight.box and style.highlight.mode != "none" else " "
     lines = []
     for line in chunk.lines:
         parts = []
@@ -135,7 +137,7 @@ def _event_text(
             st = _word_state(style, w, active == wi)
             tags = _word_tags(style, st, intro, style.animation.duration_ms)
             parts.append(tags + escape_text(w.text))
-        lines.append(" ".join(parts))
+        lines.append(separator.join(parts))
     return "\\N".join(lines)
 
 
@@ -211,7 +213,7 @@ def build_captions(
     def word_width(w: CapWord) -> float:
         return text_width(pil, w.text, spacing) * grow + 2 * pad
 
-    space = text_width(pil, " ", spacing)
+    space = text_width(pil, "  " if pad else " ", spacing)
     max_width = fmt.width * fmt.max_text_width  # type: ignore[operator]
     chunks = chunk_words(cap_words, style, word_width, space, max_width)
 

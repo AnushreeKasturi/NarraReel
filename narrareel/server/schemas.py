@@ -13,6 +13,7 @@ from ..models import (
     VoiceSelection,
 )
 from ..project import ProjectConfig
+from ..voices import QualityReport, VoiceProfile
 
 
 class HealthResponse(BaseModel):
@@ -22,6 +23,7 @@ class HealthResponse(BaseModel):
     libass: bool
     align_available: bool
     auth_required: bool = False
+    demo: bool = False
 
 
 class AnalyzeRequest(BaseModel):
@@ -115,3 +117,8 @@ class ErrorResponse(BaseModel):
     error: str
     type: str
     details: list[Any] | None = None
+
+
+class CloneResult(BaseModel):
+    profile: VoiceProfile
+    quality: QualityReport

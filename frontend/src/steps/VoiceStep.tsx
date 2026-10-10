@@ -226,7 +226,7 @@ export function VoiceStep() {
         onChange={setMode}
         items={[
           { id: 'ai', label: 'AI voices' },
-          { id: 'mine', label: 'My voice' },
+          { id: 'mine', label: 'My voice', disabled: !!health?.demo, hint: health?.demo ? 'Not available in the demo' : undefined },
         ]}
       />
 

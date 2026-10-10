@@ -65,6 +65,8 @@ narrareel = "narrareel.cli:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["narrareel"]
+# the built web app is git-ignored but must ship in the wheel
+artifacts = ["narrareel/server/static/**"]
 
 [tool.hatch.build.targets.sdist]
 include = ["narrareel", "README.md", "LICENSE", "THIRD_PARTY_LICENSES.md"]

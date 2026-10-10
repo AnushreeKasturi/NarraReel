@@ -357,3 +357,26 @@ def test_engine_prepare_task_reports_progress(client):
                 end = json.loads(line.split(":", 1)[1])
                 break
     assert end and end["status"] == "done"
+
+
+def test_demo_mode_limits(tmp_path, monkeypatch):
+    monkeypatch.setenv("NARRAREEL_HOME", str(tmp_path / "home"))
+    registry.register_engine("fake", "tests.unit.fake_engine:FakeEngine")
+    try:
+        with TestClient(create_app(runner=JobRunner(tmp_path / "j"), demo=True,
+                                   static_dir=tmp_path / "no-ui")) as c:
+            assert c.get("/api/health").json()["demo"] is True
+            assert c.get("/api/fonts").status_code == 200
+            for method, path in (("post", "/api/fonts"), ("post", "/api/backgrounds"),
+                                 ("post", "/api/voices/clone"), ("post", "/api/engines/kokoro/prepare"),
+                                 ("delete", "/api/voices/custom/x"), ("post", "/api/presets/styles")):
+                r = getattr(c, method)(path)
+                assert r.status_code == 403 and "public demo" in r.json()["error"], path
+            long_script = "word " * 400
+            r = c.post("/api/jobs", json={"project": {**PROJECT, "script": long_script}})
+            assert r.status_code == 422 and "limited to 350 words" in r.json()["error"]
+            ok = c.post("/api/jobs", json={"project": PROJECT})
+            assert ok.status_code == 200
+    finally:
+        registry.reset_instances()
+        registry.ENGINES.pop("fake", None)
